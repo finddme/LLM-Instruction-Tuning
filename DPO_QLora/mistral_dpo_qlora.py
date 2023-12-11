@@ -131,18 +131,23 @@ quant_config = BitsAndBytesConfig(
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     quantization_config=quant_config,
-#     torch_dtype=torch.float16,
-#     load_in_4bit=True
+    device_map={"": Accelerator().local_process_index},
+#     device_map=torch.device("cuda:1"),
+#     max_memory={0: "80GiB", 1: "80GiB", "cpu": "30GiB"}
+    torch_dtype=torch.float16,
+    load_in_4bit=True
 )
 model.config.use_cache = False
 model = accelerator.prepare_model(model)
 # Reference model
 ref_model = AutoModelForCausalLM.from_pretrained(
     model_name,
-#     torch_dtype=torch.float16,
-#     load_in_4bit=True
+    device_map={"": Accelerator().local_process_index},
+#     device_map=torch.device("cuda:1"),
+    torch_dtype=torch.float16,
+    load_in_4bit=True
 )
-
+ref_model = accelerator.prepare_model(ref_model)
 # Training arguments
 training_args = TrainingArguments(
     per_device_train_batch_size=4,
